@@ -18,5 +18,8 @@ namespace ServiceLocator.Player
         public void Destroy() { }
         public void Update() => playerController.Update();
 
+        // Getters
+        public PlayerController GetPlayerController() => playerController;
+
     }
 }

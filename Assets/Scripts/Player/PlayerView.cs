@@ -5,6 +5,7 @@ namespace ServiceLocator.Player
     public class PlayerView : MonoBehaviour
     {
         [SerializeField] private LayerMask groundLayerMask;
+
         // Private Variables
         private PlayerController playerController;
         private CharacterController playerCharacterController;

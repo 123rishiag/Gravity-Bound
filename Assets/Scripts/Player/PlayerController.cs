@@ -11,9 +11,10 @@ namespace ServiceLocator.Player
         private PlayerAnimationController playerAnimationController;
 
         private Vector3 movementDirection;
+        private Vector3 lastMovementDirection;
         private float verticalVelocity;
         private float currentSpeed;
-        private float targetSpeed;
+        private float speedMultiplier;
 
         // Private Services
         private InputService inputService;
@@ -33,9 +34,10 @@ namespace ServiceLocator.Player
             // Setting Elements;
             SetPlayerState(PlayerState.IDLE, false);
 
+            lastMovementDirection = Vector3.zero;
             verticalVelocity = 0f;
             currentSpeed = 0f;
-            targetSpeed = 0f;
+            speedMultiplier = 0f;
         }
 
         public void Update()
@@ -51,7 +53,10 @@ namespace ServiceLocator.Player
             {
                 if (inputService.GetPlayerMovement.magnitude > 0.1f)
                 {
-                    SetPlayerState(PlayerState.WALK);
+                    if (inputService.IsPlayerRunning)
+                        SetPlayerState(PlayerState.RUN);
+                    else
+                        SetPlayerState(PlayerState.WALK);
                 }
                 else
                 {
@@ -66,25 +71,10 @@ namespace ServiceLocator.Player
 
         private void HandleMovement()
         {
-            movementDirection = new Vector3(inputService.GetPlayerMovement.x, 0f, inputService.GetPlayerMovement.y);
-
-            if (playerModel.PlayerState == PlayerState.WALK)
-            {
-                float backwardMultiplier = movementDirection.z < -0.1f ? playerModel.BackwardMovementMultiplier : 1f;
-                float sideMultiplier = Mathf.Abs(movementDirection.x) > 0.1f ? playerModel.BackwardMovementMultiplier : 1f;
-                float speedMultiplier = (backwardMultiplier + sideMultiplier) / 2;
-                targetSpeed = playerModel.MaxWalkSpeed * speedMultiplier;
-            }
-            else
-            {
-                targetSpeed = 0;
-            }
-
-            currentSpeed = Mathf.Lerp(currentSpeed, targetSpeed, Time.deltaTime);
-
+            Vector3 direction = GetDirection();
+            SetSpeed();
             ApplyGravity();
-
-            playerView.GetCharacterController().Move(movementDirection * currentSpeed * Time.deltaTime);
+            playerView.GetCharacterController().Move(direction * currentSpeed * Time.deltaTime);
         }
 
         private void ApplyGravity()
@@ -93,7 +83,7 @@ namespace ServiceLocator.Player
 
             if (playerModel.PlayerState == PlayerState.FALL)
             {
-                // Apply gravity when in air
+                // Applying gravity when in air
                 verticalVelocity -= playerModel.GravityScale * Time.deltaTime;
             }
             else
@@ -105,6 +95,30 @@ namespace ServiceLocator.Player
             movementDirection.y = verticalVelocity;
         }
 
+        private void SetSpeed()
+        {
+            float targetSpeed = 0f;
+
+            if (playerModel.PlayerState == PlayerState.WALK || playerModel.PlayerState == PlayerState.RUN)
+            {
+
+                // Setting Speed and its multiplier based on movement direction
+                float backwardMultiplier = movementDirection.z < -0.1f ? playerModel.BackwardMovementMultiplier : 1f;
+                float sideMultiplier = Mathf.Abs(movementDirection.x) > 0.1f ? playerModel.SideMovementMultiplier : 1f;
+                speedMultiplier = Mathf.Min(backwardMultiplier, sideMultiplier);
+
+                float maxSpeed =
+                    playerModel.PlayerState == PlayerState.RUN ? playerModel.MaxRunSpeed : playerModel.MaxWalkSpeed;
+                targetSpeed = maxSpeed * speedMultiplier;
+            }
+            else
+            {
+                targetSpeed = 0f;
+            }
+
+            currentSpeed = Mathf.Lerp(currentSpeed, targetSpeed, Time.deltaTime / playerModel.MovementTransitionFactor);
+        }
+
         // Setters
         public void SetPlayerState(PlayerState _playerState, bool _isSmoothTransition = true)
         {
@@ -114,9 +128,29 @@ namespace ServiceLocator.Player
 
         // Getters
         public PlayerModel GetModel() => playerModel;
+        public Transform GetTransform() => playerView.transform;
         public Vector3 GetMovementDirection() => movementDirection;
-        public float GetCurrentSpeed() => currentSpeed;
+        public float GetSpeedMutiplier() => speedMultiplier;
 
+        private Vector3 GetDirection()
+        {
+            Vector3 direction = Vector3.zero;
+
+            // Setting Direction
+            movementDirection = new Vector3(inputService.GetPlayerMovement.x, 0f, inputService.GetPlayerMovement.y);
+
+            if (playerModel.PlayerState == PlayerState.WALK || playerModel.PlayerState == PlayerState.RUN)
+            {
+                direction = movementDirection;
+                lastMovementDirection = movementDirection;
+            }
+            else
+            {
+                direction = lastMovementDirection;
+            }
+
+            return direction;
+        }
         private bool IsGrounded()
         {
             float checkDistance = 0.2f;

@@ -35,6 +35,15 @@ public partial class @InputControls: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": true
+                },
+                {
+                    ""name"": ""IsRunning"",
+                    ""type"": ""Button"",
+                    ""id"": ""c59be6ec-e069-4ad3-94cf-8d73a664e5e9"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -92,6 +101,72 @@ public partial class @InputControls: IInputActionCollection2, IDisposable
                     ""action"": ""Move"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""2D Vector"",
+                    ""id"": ""779d76e6-d1c8-4272-814e-4d3d0cb4ce32"",
+                    ""path"": ""2DVector"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Move"",
+                    ""isComposite"": true,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": ""up"",
+                    ""id"": ""44036bc1-221e-4a00-b477-9f289b4692c9"",
+                    ""path"": ""<Keyboard>/upArrow"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Move"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""down"",
+                    ""id"": ""9e095902-64d3-453c-94aa-9a40d4f0c859"",
+                    ""path"": ""<Keyboard>/downArrow"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Move"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""left"",
+                    ""id"": ""540a2cf5-1c83-4be8-998c-0a92e1cf03f0"",
+                    ""path"": ""<Keyboard>/leftArrow"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Move"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""right"",
+                    ""id"": ""2914e034-cadb-4e27-a445-401561d55b34"",
+                    ""path"": ""<Keyboard>/rightArrow"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Move"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""470cc905-7ff2-4d6f-a7f4-a4970ddef307"",
+                    ""path"": ""<Keyboard>/leftShift"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""IsRunning"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -101,6 +176,7 @@ public partial class @InputControls: IInputActionCollection2, IDisposable
         // Player
         m_Player = asset.FindActionMap("Player", throwIfNotFound: true);
         m_Player_Move = m_Player.FindAction("Move", throwIfNotFound: true);
+        m_Player_IsRunning = m_Player.FindAction("IsRunning", throwIfNotFound: true);
     }
 
     ~@InputControls()
@@ -168,11 +244,13 @@ public partial class @InputControls: IInputActionCollection2, IDisposable
     private readonly InputActionMap m_Player;
     private List<IPlayerActions> m_PlayerActionsCallbackInterfaces = new List<IPlayerActions>();
     private readonly InputAction m_Player_Move;
+    private readonly InputAction m_Player_IsRunning;
     public struct PlayerActions
     {
         private @InputControls m_Wrapper;
         public PlayerActions(@InputControls wrapper) { m_Wrapper = wrapper; }
         public InputAction @Move => m_Wrapper.m_Player_Move;
+        public InputAction @IsRunning => m_Wrapper.m_Player_IsRunning;
         public InputActionMap Get() { return m_Wrapper.m_Player; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -185,6 +263,9 @@ public partial class @InputControls: IInputActionCollection2, IDisposable
             @Move.started += instance.OnMove;
             @Move.performed += instance.OnMove;
             @Move.canceled += instance.OnMove;
+            @IsRunning.started += instance.OnIsRunning;
+            @IsRunning.performed += instance.OnIsRunning;
+            @IsRunning.canceled += instance.OnIsRunning;
         }
 
         private void UnregisterCallbacks(IPlayerActions instance)
@@ -192,6 +273,9 @@ public partial class @InputControls: IInputActionCollection2, IDisposable
             @Move.started -= instance.OnMove;
             @Move.performed -= instance.OnMove;
             @Move.canceled -= instance.OnMove;
+            @IsRunning.started -= instance.OnIsRunning;
+            @IsRunning.performed -= instance.OnIsRunning;
+            @IsRunning.canceled -= instance.OnIsRunning;
         }
 
         public void RemoveCallbacks(IPlayerActions instance)
@@ -212,5 +296,6 @@ public partial class @InputControls: IInputActionCollection2, IDisposable
     public interface IPlayerActions
     {
         void OnMove(InputAction.CallbackContext context);
+        void OnIsRunning(InputAction.CallbackContext context);
     }
 }

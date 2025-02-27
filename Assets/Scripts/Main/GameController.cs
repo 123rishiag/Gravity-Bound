@@ -14,6 +14,7 @@ namespace ServiceLocator.Main
 
         public GameController(GameService _gameService)
         {
+            // Setting Services
             gameService = _gameService;
             CreateServices();
             InjectDependencies();
@@ -22,13 +23,13 @@ namespace ServiceLocator.Main
         private void CreateServices()
         {
             inputService = new InputService();
-            cameraService = new CameraService(gameService.mainCamera);
+            cameraService = new CameraService(gameService.mainCamera, gameService.cameraOffset);
             playerService = new PlayerService(gameService.playerConfig);
         }
         private void InjectDependencies()
         {
             inputService.Init();
-            cameraService.Init();
+            cameraService.Init(playerService);
             playerService.Init(inputService);
         }
 

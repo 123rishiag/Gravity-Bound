@@ -456,6 +456,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   mainCamera: {fileID: 330585545}
+  cameraOffset: {x: 0, y: 0.8, z: -2}
   playerConfig: {fileID: 11400000, guid: 96246b1f885e7f145abbd75a18dcef42, type: 2}
 --- !u!4 &1146295019
 Transform:
