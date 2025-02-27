@@ -1,3 +1,4 @@
+using ServiceLocator.Player;
 using UnityEngine;
 
 namespace ServiceLocator.Main
@@ -6,6 +7,9 @@ namespace ServiceLocator.Main
     {
         [Header("Camera Variables")]
         [SerializeField] public Camera mainCamera;
+
+        [Header("Game Components")]
+        [SerializeField] public PlayerConfig playerConfig;
 
         // Private Variables
         private GameController gameController;
