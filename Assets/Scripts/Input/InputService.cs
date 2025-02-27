@@ -1,3 +1,5 @@
+using UnityEngine;
+
 namespace ServiceLocator.Controls
 {
     public class InputService
@@ -8,6 +10,11 @@ namespace ServiceLocator.Controls
         public InputService() => inputControls = new InputControls();
         public void Init() => inputControls.Enable();
         public void Destroy() => inputControls.Disable();
-        public void Update() { }
+        public void Update()
+        {
+            GetPlayerMovement = inputControls.Player.Move.ReadValue<Vector2>();
+        }
+
+        public Vector2 GetPlayerMovement { get; private set; }
     }
 }
