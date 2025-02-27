@@ -1,3 +1,4 @@
+using ServiceLocator.Player;
 using UnityEngine;
 
 namespace ServiceLocator.Vision
@@ -6,13 +7,23 @@ namespace ServiceLocator.Vision
     {
         // Private Variables
         private Camera mainCamera;
+        private Vector3 positionOffset;
 
-        public CameraService(Camera _camera) => mainCamera = _camera;
-        public void Init() { }
+        // Private Services
+        private PlayerService playerService;
+
+        public CameraService(Camera _camera, Vector3 _positionOffset)
+        {
+            mainCamera = _camera;
+            positionOffset = _positionOffset;
+        }
+        public void Init(PlayerService _playerService) => playerService = _playerService;
         public void Destroy() { }
-        public void Update() { }
+        public void Update() => FollowTransform();
 
         // Setters
-        public void SetFollow(Transform _transform) => mainCamera.transform.position = _transform.position;
+        private void FollowTransform() =>
+            mainCamera.transform.position = playerService.GetPlayerController().GetTransform().position + positionOffset;
+
     }
 }
