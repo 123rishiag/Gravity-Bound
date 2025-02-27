@@ -13,3 +13,7 @@ MonoBehaviour:
   m_Name: PlayerConfig
   m_EditorClassIdentifier: 
   playerPrefab: {fileID: 6041289527901472465, guid: c2e1069e8fd268845827954dcf4dad49, type: 3}
+  playerData:
+    maxWalkSpeed: 2
+    backwardMovementMultiplier: 0.7
+    gravityScale: 9.81

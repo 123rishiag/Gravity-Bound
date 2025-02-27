@@ -5,25 +5,48 @@ namespace ServiceLocator.Player
     public class PlayerAnimationController
     {
         // Private Variables
+        private PlayerController playerController;
         private Animator playerAnimator;
 
         // Animation Hashes
         private readonly int tPoseHash = Animator.StringToHash("TPose");
-        private readonly int idleHash = Animator.StringToHash("Idle");
+        private readonly int walkHash = Animator.StringToHash("Walk");
 
-        public PlayerAnimationController(Animator _playerAnimator) => playerAnimator = _playerAnimator;
+        // Parameter Hashes
+        private readonly int movementXHash = Animator.StringToHash("movementX");
+        private readonly int movementZHash = Animator.StringToHash("movementZ");
+        private readonly int currentSpeedHash = Animator.StringToHash("currentSpeed");
+
+        public PlayerAnimationController(PlayerController _playerController, Animator _playerAnimator)
+        {
+            playerController = _playerController;
+            playerAnimator = _playerAnimator;
+        }
+
+        public void Update()
+        {
+            UpdateAnimationParameters();
+        }
+
+        private void UpdateAnimationParameters()
+        {
+            playerAnimator.SetFloat(movementXHash, playerController.GetMovementDirection().x, 0.1f, Time.deltaTime);
+            playerAnimator.SetFloat(movementZHash, playerController.GetMovementDirection().z, 0.1f, Time.deltaTime);
+            playerAnimator.SetFloat(currentSpeedHash, playerController.GetCurrentSpeed(), 0.1f, Time.deltaTime);
+        }
 
         // Setters
-        public void SetAnimation(PlayerState _playerState, bool _isSmoothTransition)
+        public void SetAnimation(bool _isSmoothTransition)
         {
-            float transitionFactor = _isSmoothTransition ? 0.2f : 0f;
-            switch (_playerState)
+            switch (playerController.GetModel().PlayerState)
             {
                 case PlayerState.IDLE:
-                    playerAnimator.CrossFade(idleHash, transitionFactor);
+                case PlayerState.WALK:
+                    playerAnimator.Play(walkHash);
                     break;
+
                 default:
-                    playerAnimator.CrossFade(tPoseHash, transitionFactor);
+                    playerAnimator.Play(tPoseHash);
                     break;
             }
         }

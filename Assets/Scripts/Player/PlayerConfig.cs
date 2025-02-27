@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 namespace ServiceLocator.Player
@@ -6,5 +7,15 @@ namespace ServiceLocator.Player
     public class PlayerConfig : ScriptableObject
     {
         public PlayerView playerPrefab;
+        public PlayerData playerData;
+    }
+
+    [Serializable]
+    public class PlayerData
+    {
+        public float maxWalkSpeed = 2f;
+        public float backwardMovementMultiplier = 0.7f;
+        public float sideMovementMultiplier = 0.7f;
+        public float gravityScale = 9.81f;
     }
 }

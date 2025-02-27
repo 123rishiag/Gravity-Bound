@@ -29,7 +29,7 @@ namespace ServiceLocator.Main
         {
             inputService.Init();
             cameraService.Init();
-            playerService.Init();
+            playerService.Init(inputService);
         }
 
         public void Destroy()
