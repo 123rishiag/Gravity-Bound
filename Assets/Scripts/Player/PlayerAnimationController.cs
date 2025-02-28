@@ -27,15 +27,28 @@ namespace ServiceLocator.Player
 
         private void UpdateAnimationParameters()
         {
-            float transitionFactorMultiplier = playerController.GetModel().MovementTransitionFactor;
-            float movementFactorMultiplier = playerController.GetModel().PlayerState == PlayerState.RUN ? 1f : 0.5f;
+            UpdateMovementParameters();
+        }
 
-            playerAnimator.SetFloat(movementXHash, playerController.GetMovementDirection().x * movementFactorMultiplier,
-                transitionFactorMultiplier, Time.deltaTime);
-            playerAnimator.SetFloat(movementZHash, playerController.GetMovementDirection().z * movementFactorMultiplier,
-                transitionFactorMultiplier, Time.deltaTime);
-            playerAnimator.SetFloat(speedMultiplierHash, playerController.GetSpeedMutiplier(),
-                transitionFactorMultiplier, Time.deltaTime);
+        private void UpdateMovementParameters()
+        {
+            PlayerState playerState = playerController.GetModel().PlayerState;
+
+            // Fetching maximum speed based on player state
+            float maxSpeed = (playerState == PlayerState.RUN ? playerController.GetModel().MaxRunSpeed :
+                (playerState == PlayerState.WALK ? playerController.GetModel().MaxWalkSpeed : 0f));
+
+            // Normalizing Speed to (0,1)
+            float normalizedSpeed =
+                (playerController.GetCurrentSpeed() + (maxSpeed * (1 - playerController.GetSpeedMutiplier()))) /
+                (maxSpeed == 0f ? 1f : maxSpeed);
+
+            // Fetching Animation Factors for movement
+            float movementFactor = normalizedSpeed * (playerState == PlayerState.RUN ? 1f : 0.5f);
+
+            playerAnimator.SetFloat(movementXHash, playerController.GetMovementDirection().x * movementFactor);
+            playerAnimator.SetFloat(movementZHash, playerController.GetMovementDirection().z * movementFactor);
+            playerAnimator.SetFloat(speedMultiplierHash, playerController.GetSpeedMutiplier());
         }
 
         // Setters
