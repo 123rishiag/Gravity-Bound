@@ -71,10 +71,10 @@ namespace ServiceLocator.Player
 
         private void HandleMovement()
         {
-            Vector3 direction = GetDirection();
+            SetDirection();
             SetSpeed();
             ApplyGravity();
-            playerView.GetCharacterController().Move(direction * currentSpeed * Time.deltaTime);
+            playerView.GetCharacterController().Move(movementDirection * currentSpeed * Time.deltaTime);
         }
 
         private void ApplyGravity()
@@ -93,6 +93,21 @@ namespace ServiceLocator.Player
             }
 
             movementDirection.y = verticalVelocity;
+        }
+
+        private void SetDirection()
+        {
+            // Setting Direction
+            movementDirection = new Vector3(inputService.GetPlayerMovement.x, 0f, inputService.GetPlayerMovement.y);
+
+            if (playerModel.PlayerState == PlayerState.WALK || playerModel.PlayerState == PlayerState.RUN)
+            {
+                lastMovementDirection = movementDirection;
+            }
+            else
+            {
+                movementDirection = lastMovementDirection;
+            }
         }
 
         private void SetSpeed()
@@ -116,7 +131,7 @@ namespace ServiceLocator.Player
                 targetSpeed = 0f;
             }
 
-            currentSpeed = Mathf.Lerp(currentSpeed, targetSpeed, Time.deltaTime / playerModel.MovementTransitionFactor);
+            currentSpeed = Mathf.Lerp(currentSpeed, targetSpeed, playerModel.MovementTransitionFactor * Time.deltaTime);
         }
 
         // Setters
@@ -130,27 +145,8 @@ namespace ServiceLocator.Player
         public PlayerModel GetModel() => playerModel;
         public Transform GetTransform() => playerView.transform;
         public Vector3 GetMovementDirection() => movementDirection;
+        public float GetCurrentSpeed() => currentSpeed;
         public float GetSpeedMutiplier() => speedMultiplier;
-
-        private Vector3 GetDirection()
-        {
-            Vector3 direction = Vector3.zero;
-
-            // Setting Direction
-            movementDirection = new Vector3(inputService.GetPlayerMovement.x, 0f, inputService.GetPlayerMovement.y);
-
-            if (playerModel.PlayerState == PlayerState.WALK || playerModel.PlayerState == PlayerState.RUN)
-            {
-                direction = movementDirection;
-                lastMovementDirection = movementDirection;
-            }
-            else
-            {
-                direction = lastMovementDirection;
-            }
-
-            return direction;
-        }
         private bool IsGrounded()
         {
             float checkDistance = 0.2f;
