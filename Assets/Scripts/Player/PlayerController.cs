@@ -31,7 +31,7 @@ namespace ServiceLocator.Player
             inputService = _inputService;
 
             // Setting Elements;
-            SetPlayerState(PlayerState.IDLE, false);
+            SetPlayerState(PlayerState.IDLE);
 
             verticalVelocity = 0f;
             currentSpeed = 0f;
@@ -47,14 +47,31 @@ namespace ServiceLocator.Player
 
         private void HandleStates()
         {
-            if (IsGrounded())
+            if ((playerModel.PlayerState == PlayerState.WALK_TURN || playerModel.PlayerState == PlayerState.RUN_TURN) &&
+                playerAnimationController.IsAnimationFinished())
+            {
+                SetPlayerState(PlayerState.IDLE);
+            }
+            else if (IsGrounded())
             {
                 if (inputService.GetPlayerMovement.magnitude > 0.1f)
                 {
-                    if (inputService.IsPlayerRunning)
-                        SetPlayerState(PlayerState.RUN);
+                    // If instant move in opposite direction
+                    if (Mathf.Sign(movementDirection.z) != Mathf.Sign(inputService.GetPlayerMovement.y) &&
+                        Mathf.Abs(inputService.GetPlayerMovement.y) > 0.1f)
+                    {
+                        if (inputService.IsPlayerRunning)
+                            SetPlayerState(PlayerState.RUN_TURN);
+                        else
+                            SetPlayerState(PlayerState.WALK_TURN);
+                    }
                     else
-                        SetPlayerState(PlayerState.WALK);
+                    {
+                        if (inputService.IsPlayerRunning)
+                            SetPlayerState(PlayerState.RUN);
+                        else
+                            SetPlayerState(PlayerState.WALK);
+                    }
                 }
                 else
                 {
@@ -97,11 +114,14 @@ namespace ServiceLocator.Player
         {
             Vector3 newInput = new Vector3(inputService.GetPlayerMovement.x, 0f, inputService.GetPlayerMovement.y);
 
+            // Converting input direction to world space based on player's rotation
+            Vector3 worldDirection = playerView.transform.rotation * newInput;
+
             // Applying smooth transition for X movement
-            movementDirection.x = Mathf.Lerp(movementDirection.x, newInput.x, Time.deltaTime);
+            movementDirection.x = Mathf.Lerp(movementDirection.x, worldDirection.x, Time.deltaTime);
 
             // Applying smooth transition for Z movement
-            movementDirection.z = Mathf.Lerp(movementDirection.z, newInput.z, Time.deltaTime);
+            movementDirection.z = Mathf.Lerp(movementDirection.z, worldDirection.z, Time.deltaTime);
         }
 
         private void SetSpeed()
@@ -111,9 +131,7 @@ namespace ServiceLocator.Player
             if (playerModel.PlayerState == PlayerState.WALK || playerModel.PlayerState == PlayerState.RUN)
             {
                 // Setting Speed and its multiplier based on movement direction
-                float backwardMultiplier = movementDirection.z < -0.1f ? playerModel.BackwardMovementMultiplier : 1f;
-                float sideMultiplier = Mathf.Abs(movementDirection.x) > 0.1f ? playerModel.SideMovementMultiplier : 1f;
-                speedMultiplier = Mathf.Min(backwardMultiplier, sideMultiplier);
+                speedMultiplier = Mathf.Abs(movementDirection.x) > 0.1f ? playerModel.SideMovementMultiplier : 1f;
 
                 float maxSpeed =
                     playerModel.PlayerState == PlayerState.RUN ? playerModel.MaxRunSpeed : playerModel.MaxWalkSpeed;
@@ -128,10 +146,10 @@ namespace ServiceLocator.Player
         }
 
         // Setters
-        public void SetPlayerState(PlayerState _playerState, bool _isSmoothTransition = true)
+        public void SetPlayerState(PlayerState _playerState)
         {
             playerModel.PlayerState = _playerState;
-            playerAnimationController.SetAnimation(_isSmoothTransition);
+            playerAnimationController.SetAnimation();
         }
 
         // Getters

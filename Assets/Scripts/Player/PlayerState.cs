@@ -4,7 +4,9 @@ namespace ServiceLocator.Player
     {
         IDLE,
         WALK,
+        WALK_TURN,
         RUN,
+        RUN_TURN,
         FALL
     }
 }

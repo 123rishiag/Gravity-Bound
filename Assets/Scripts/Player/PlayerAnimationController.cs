@@ -13,6 +13,8 @@ namespace ServiceLocator.Player
         // Animation Hashes
         private readonly int tPoseHash = Animator.StringToHash("TPose");
         private readonly int moveHash = Animator.StringToHash("Move");
+        private readonly int walkTurnHash = Animator.StringToHash("Walk_Turn");
+        private readonly int runTurnHash = Animator.StringToHash("Run_Turn");
 
         // Parameter Hashes
         private readonly int movementXHash = Animator.StringToHash("movementX");
@@ -46,7 +48,7 @@ namespace ServiceLocator.Player
         }
 
         // Setters
-        public void SetAnimation(bool _isSmoothTransition)
+        public void SetAnimation()
         {
             switch (playerController.GetModel().PlayerState)
             {
@@ -56,10 +58,29 @@ namespace ServiceLocator.Player
                     playerAnimator.Play(moveHash);
                     break;
 
+                case PlayerState.WALK_TURN:
+                    playerAnimator.Play(walkTurnHash);
+                    break;
+
+                case PlayerState.RUN_TURN:
+                    playerAnimator.Play(runTurnHash);
+                    break;
+
                 default:
                     playerAnimator.Play(tPoseHash);
                     break;
             }
+        }
+
+        // Getters
+        public bool IsAnimationFinished()
+        {
+            AnimatorStateInfo stateInfo = playerAnimator.GetCurrentAnimatorStateInfo(0);
+            if (stateInfo.normalizedTime >= 1.0f)
+            {
+                return true;
+            }
+            return false;
         }
     }
 }

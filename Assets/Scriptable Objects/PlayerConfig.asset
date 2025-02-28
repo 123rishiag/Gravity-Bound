@@ -16,6 +16,6 @@ MonoBehaviour:
   playerData:
     maxWalkSpeed: 2
     maxRunSpeed: 5
-    backwardMovementMultiplier: 0.5
+    rotationSpeed: 2
     sideMovementMultiplier: 0.7
     gravityScale: 9.81
