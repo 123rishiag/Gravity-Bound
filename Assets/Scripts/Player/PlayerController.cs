@@ -11,7 +11,6 @@ namespace ServiceLocator.Player
         private PlayerAnimationController playerAnimationController;
 
         private Vector3 movementDirection;
-        private Vector3 lastMovementDirection;
         private float verticalVelocity;
         private float currentSpeed;
         private float speedMultiplier;
@@ -34,7 +33,6 @@ namespace ServiceLocator.Player
             // Setting Elements;
             SetPlayerState(PlayerState.IDLE, false);
 
-            lastMovementDirection = Vector3.zero;
             verticalVelocity = 0f;
             currentSpeed = 0f;
             speedMultiplier = 0f;
@@ -97,17 +95,13 @@ namespace ServiceLocator.Player
 
         private void SetDirection()
         {
-            // Setting Direction
-            movementDirection = new Vector3(inputService.GetPlayerMovement.x, 0f, inputService.GetPlayerMovement.y);
+            Vector3 newInput = new Vector3(inputService.GetPlayerMovement.x, 0f, inputService.GetPlayerMovement.y);
 
-            if (playerModel.PlayerState == PlayerState.WALK || playerModel.PlayerState == PlayerState.RUN)
-            {
-                lastMovementDirection = movementDirection;
-            }
-            else
-            {
-                movementDirection = lastMovementDirection;
-            }
+            // Applying smooth transition for X movement
+            movementDirection.x = Mathf.Lerp(movementDirection.x, newInput.x, Time.deltaTime);
+
+            // Applying smooth transition for Z movement
+            movementDirection.z = Mathf.Lerp(movementDirection.z, newInput.z, Time.deltaTime);
         }
 
         private void SetSpeed()
@@ -116,7 +110,6 @@ namespace ServiceLocator.Player
 
             if (playerModel.PlayerState == PlayerState.WALK || playerModel.PlayerState == PlayerState.RUN)
             {
-
                 // Setting Speed and its multiplier based on movement direction
                 float backwardMultiplier = movementDirection.z < -0.1f ? playerModel.BackwardMovementMultiplier : 1f;
                 float sideMultiplier = Mathf.Abs(movementDirection.x) > 0.1f ? playerModel.SideMovementMultiplier : 1f;
@@ -131,7 +124,7 @@ namespace ServiceLocator.Player
                 targetSpeed = 0f;
             }
 
-            currentSpeed = Mathf.Lerp(currentSpeed, targetSpeed, playerModel.MovementTransitionFactor * Time.deltaTime);
+            currentSpeed = Mathf.Lerp(currentSpeed, targetSpeed, Time.deltaTime);
         }
 
         // Setters

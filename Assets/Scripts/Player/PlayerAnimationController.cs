@@ -8,6 +8,8 @@ namespace ServiceLocator.Player
         private PlayerController playerController;
         private Animator playerAnimator;
 
+        private float movementFactor;
+
         // Animation Hashes
         private readonly int tPoseHash = Animator.StringToHash("TPose");
         private readonly int moveHash = Animator.StringToHash("Move");
@@ -34,17 +36,9 @@ namespace ServiceLocator.Player
         {
             PlayerState playerState = playerController.GetModel().PlayerState;
 
-            // Fetching maximum speed based on player state
-            float maxSpeed = (playerState == PlayerState.RUN ? playerController.GetModel().MaxRunSpeed :
-                (playerState == PlayerState.WALK ? playerController.GetModel().MaxWalkSpeed : 0f));
-
-            // Normalizing Speed to (0,1)
-            float normalizedSpeed =
-                (playerController.GetCurrentSpeed() + (maxSpeed * (1 - playerController.GetSpeedMutiplier()))) /
-                (maxSpeed == 0f ? 1f : maxSpeed);
-
             // Fetching Animation Factors for movement
-            float movementFactor = normalizedSpeed * (playerState == PlayerState.RUN ? 1f : 0.5f);
+            float targetMovementFactor = (playerState == PlayerState.RUN ? 1f : 0.5f);
+            movementFactor = Mathf.Lerp(movementFactor, targetMovementFactor, Time.deltaTime);
 
             playerAnimator.SetFloat(movementXHash, playerController.GetMovementDirection().x * movementFactor);
             playerAnimator.SetFloat(movementZHash, playerController.GetMovementDirection().z * movementFactor);
