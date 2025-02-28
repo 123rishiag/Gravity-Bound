@@ -7,7 +7,7 @@ namespace ServiceLocator.Player
             PlayerState = PlayerState.IDLE;
             MaxWalkSpeed = _playerData.maxWalkSpeed;
             MaxRunSpeed = _playerData.maxRunSpeed;
-            BackwardMovementMultiplier = _playerData.backwardMovementMultiplier;
+            RotationSpeed = _playerData.rotationSpeed;
             SideMovementMultiplier = _playerData.sideMovementMultiplier;
             GravityScale = _playerData.gravityScale;
         }
@@ -16,7 +16,7 @@ namespace ServiceLocator.Player
         public PlayerState PlayerState { get; set; }
         public float MaxWalkSpeed { get; private set; }
         public float MaxRunSpeed { get; private set; }
-        public float BackwardMovementMultiplier { get; private set; }
+        public float RotationSpeed { get; private set; }
         public float SideMovementMultiplier { get; private set; }
         public float GravityScale { get; private set; }
     }
