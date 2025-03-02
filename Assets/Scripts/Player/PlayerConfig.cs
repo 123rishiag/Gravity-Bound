@@ -16,8 +16,6 @@ namespace ServiceLocator.Player
         public float maxWalkSpeed = 2f;
         public float maxRunSpeed = 5f;
         public float rotationSpeed = 2f;
-        [Range(0, 1)]
-        public float sideMovementMultiplier = 0.7f;
         public float gravityScale = 9.81f;
     }
 }

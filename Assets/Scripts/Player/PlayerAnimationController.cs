@@ -8,7 +8,7 @@ namespace ServiceLocator.Player
         private PlayerController playerController;
         private Animator playerAnimator;
 
-        private float movementFactor;
+        private float movementSpeed;
 
         // Animation Hashes
         private readonly int tPoseHash = Animator.StringToHash("TPose");
@@ -39,12 +39,24 @@ namespace ServiceLocator.Player
             PlayerState playerState = playerController.GetModel().PlayerState;
 
             // Fetching Animation Factors for movement
-            float targetMovementFactor = (playerState == PlayerState.RUN ? 1f : 0.5f);
-            movementFactor = Mathf.Lerp(movementFactor, targetMovementFactor, Time.deltaTime);
-
-            playerAnimator.SetFloat(movementXHash, playerController.GetMovementDirection().x * movementFactor);
-            playerAnimator.SetFloat(movementZHash, playerController.GetMovementDirection().z * movementFactor);
-            playerAnimator.SetFloat(speedMultiplierHash, playerController.GetSpeedMutiplier());
+            float targetSpeed;
+            switch (playerState)
+            {
+                case PlayerState.RUN:
+                    targetSpeed = 1f;
+                    break;
+                case PlayerState.WALK:
+                    targetSpeed = 0.5f;
+                    break;
+                case PlayerState.IDLE:
+                    targetSpeed = 0f;
+                    break;
+                default:
+                    targetSpeed = -1f;
+                    break;
+            }
+            movementSpeed = Mathf.Lerp(movementSpeed, targetSpeed, Time.deltaTime);
+            playerAnimator.SetFloat(speedMultiplierHash, movementSpeed);
         }
 
         // Setters
@@ -56,14 +68,6 @@ namespace ServiceLocator.Player
                 case PlayerState.WALK:
                 case PlayerState.RUN:
                     playerAnimator.Play(moveHash);
-                    break;
-
-                case PlayerState.WALK_TURN:
-                    playerAnimator.Play(walkTurnHash);
-                    break;
-
-                case PlayerState.RUN_TURN:
-                    playerAnimator.Play(runTurnHash);
                     break;
 
                 default:
