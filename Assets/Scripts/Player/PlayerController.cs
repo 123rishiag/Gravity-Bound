@@ -10,6 +10,7 @@ namespace ServiceLocator.Player
         private PlayerView playerView;
         private PlayerAnimationController playerAnimationController;
 
+        private Vector2 movementInput;
         private Vector3 movementDirection;
         private float verticalVelocity;
         private float currentSpeed;
@@ -47,25 +48,10 @@ namespace ServiceLocator.Player
 
         private void HandleStates()
         {
-            if ((playerModel.PlayerState == PlayerState.WALK_TURN || playerModel.PlayerState == PlayerState.RUN_TURN) &&
-                playerAnimationController.IsAnimationFinished())
-            {
-                SetPlayerState(PlayerState.IDLE);
-            }
-            else if (IsGrounded())
+            if (IsGrounded())
             {
                 if (inputService.GetPlayerMovement.magnitude > 0.1f)
                 {
-                    // If instant move in opposite direction
-                    if (Mathf.Sign(movementDirection.z) != Mathf.Sign(inputService.GetPlayerMovement.y) &&
-                        Mathf.Abs(inputService.GetPlayerMovement.y) > 0.1f)
-                    {
-                        if (inputService.IsPlayerRunning)
-                            SetPlayerState(PlayerState.RUN_TURN);
-                        else
-                            SetPlayerState(PlayerState.WALK_TURN);
-                    }
-                    else
                     {
                         if (inputService.IsPlayerRunning)
                             SetPlayerState(PlayerState.RUN);
@@ -89,13 +75,44 @@ namespace ServiceLocator.Player
             SetDirection();
             SetSpeed();
             ApplyGravity();
+            RotatePlayer();
             playerView.GetCharacterController().Move(movementDirection * currentSpeed * Time.deltaTime);
+        }
+
+        private void SetDirection()
+        {
+            movementInput = inputService.GetPlayerMovement;
+            Vector3 inputVector = new Vector3(movementInput.x, 0f, movementInput.y);
+
+            // Converting input direction to world space based on player's rotation
+            Quaternion cameraRotation = Camera.main.transform.rotation;
+            cameraRotation.x = 0f; // To ignore Vertical tilt
+            cameraRotation.z = 0f;
+
+            // Updated Movement direction is rotation of camera * input Vector
+            Vector3 targetDirection = cameraRotation * inputVector;
+            movementDirection = Vector3.Lerp(movementDirection, targetDirection, Time.deltaTime);
+        }
+
+        private void SetSpeed()
+        {
+            float targetSpeed = 0f;
+
+            if (playerModel.PlayerState == PlayerState.WALK || playerModel.PlayerState == PlayerState.RUN)
+            {
+                targetSpeed =
+                    playerModel.PlayerState == PlayerState.RUN ? playerModel.MaxRunSpeed : playerModel.MaxWalkSpeed;
+            }
+            else
+            {
+                targetSpeed = 0f;
+            }
+
+            currentSpeed = Mathf.Lerp(currentSpeed, targetSpeed, Time.deltaTime);
         }
 
         private void ApplyGravity()
         {
-            movementDirection.y = 0;
-
             if (playerModel.PlayerState == PlayerState.FALL)
             {
                 // Applying gravity when in air
@@ -110,42 +127,34 @@ namespace ServiceLocator.Player
             movementDirection.y = verticalVelocity;
         }
 
-        private void SetDirection()
+        private void RotatePlayer()
         {
-            Vector3 newInput = new Vector3(inputService.GetPlayerMovement.x, 0f, inputService.GetPlayerMovement.y);
-
-            // Converting input direction to world space based on player's rotation
-            Vector3 worldDirection = playerView.transform.rotation * newInput;
-
-            // Applying smooth transition for X movement
-            movementDirection.x = Mathf.Lerp(movementDirection.x, worldDirection.x, Time.deltaTime);
-
-            // Applying smooth transition for Z movement
-            movementDirection.z = Mathf.Lerp(movementDirection.z, worldDirection.z, Time.deltaTime);
-        }
-
-        private void SetSpeed()
-        {
-            float targetSpeed = 0f;
-
             if (playerModel.PlayerState == PlayerState.WALK || playerModel.PlayerState == PlayerState.RUN)
             {
-                // Setting Speed and its multiplier based on movement direction
-                speedMultiplier = Mathf.Abs(movementDirection.x) > 0.1f ? playerModel.SideMovementMultiplier : 1f;
+                Vector3 lookDirection = movementDirection;
+                lookDirection.y = 0f; // To avoid Rotation on vertical tilt
 
-                float maxSpeed =
-                    playerModel.PlayerState == PlayerState.RUN ? playerModel.MaxRunSpeed : playerModel.MaxWalkSpeed;
-                targetSpeed = maxSpeed * speedMultiplier;
-            }
-            else
-            {
-                targetSpeed = 0f;
-            }
+                if (lookDirection.sqrMagnitude > 0.01f)
+                {
+                    float angleBetween = Vector3.Angle(playerView.transform.forward, lookDirection);
 
-            currentSpeed = Mathf.Lerp(currentSpeed, targetSpeed, Time.deltaTime);
+                    float rotationSpeed = playerModel.RotationSpeed;
+
+                    // If angle is greater than 120 degree
+                    if (angleBetween > 120f)
+                    {
+                        rotationSpeed *= 0.5f;
+                    }
+
+                    Quaternion targetRotation = Quaternion.LookRotation(lookDirection);
+                    playerView.transform.rotation = Quaternion.Slerp(
+                        playerView.transform.rotation,
+                        targetRotation,
+                        rotationSpeed * Time.deltaTime
+                    );
+                }
+            }
         }
-
-        // Setters
         public void SetPlayerState(PlayerState _playerState)
         {
             playerModel.PlayerState = _playerState;
@@ -155,6 +164,7 @@ namespace ServiceLocator.Player
         // Getters
         public PlayerModel GetModel() => playerModel;
         public Transform GetTransform() => playerView.transform;
+        public Vector2 GetMovementInput() => movementInput;
         public Vector3 GetMovementDirection() => movementDirection;
         public float GetCurrentSpeed() => currentSpeed;
         public float GetSpeedMutiplier() => speedMultiplier;

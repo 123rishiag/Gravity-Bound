@@ -10,8 +10,8 @@ namespace ServiceLocator.Vision
         private Camera mainCamera;
         private CameraConfig cameraConfig;
 
-        private float pitch = 0f;  // Pitch is vertical angle
-        private float yaw = 0f;  // Yaw is horizontal angle
+        private float pitch;  // Pitch is vertical angle
+        private float yaw;  // Yaw is horizontal angle
 
         // Private Services
         private InputService inputService;
@@ -33,12 +33,9 @@ namespace ServiceLocator.Vision
             playerService = _playerService;
         }
         public void Destroy() { }
-        public void Update()
-        {
-            RotateMouse();
-        }
+        public void Update() => RotateCamera();
 
-        void RotateMouse()
+        void RotateCamera()
         {
             float mouseX = inputService.CameraRotation.x * cameraConfig.cameraSensitivity * Time.deltaTime;
             float mouseY = inputService.CameraRotation.y * cameraConfig.cameraSensitivity * Time.deltaTime;
@@ -53,10 +50,10 @@ namespace ServiceLocator.Vision
                 playerService.GetPlayerController().GetTransform().position + Vector3.up * cameraConfig.heightOffsetFromPlayer;
 
             // Calculating rotation from yaw and pitch
-            Quaternion rotation = Quaternion.Euler(pitch, yaw, 0);
+            Quaternion rotation = Quaternion.Euler(pitch, yaw, 0f);
 
             // To keep constant distance behind player
-            Vector3 cameraOffset = rotation * new Vector3(0, 0, -cameraConfig.distanceFromPlayer);
+            Vector3 cameraOffset = rotation * new Vector3(0f, 0f, -cameraConfig.distanceFromPlayer);
 
             // Setting camera Position
             mainCamera.transform.position = playerPosition + cameraOffset;
