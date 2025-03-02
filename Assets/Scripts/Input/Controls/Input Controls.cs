@@ -169,6 +169,34 @@ public partial class @InputControls: IInputActionCollection2, IDisposable
                     ""isPartOfComposite"": false
                 }
             ]
+        },
+        {
+            ""name"": ""Camera"",
+            ""id"": ""e74d03af-4aef-4f59-9d52-cb0d222394f6"",
+            ""actions"": [
+                {
+                    ""name"": ""CameraRotation"",
+                    ""type"": ""Value"",
+                    ""id"": ""c5eb1e2c-8636-4f60-85fc-6e1d0aeb8f67"",
+                    ""expectedControlType"": ""Delta"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": true
+                }
+            ],
+            ""bindings"": [
+                {
+                    ""name"": """",
+                    ""id"": ""fbb2fc86-0837-4b08-88c2-9772361bdb43"",
+                    ""path"": ""<Mouse>/delta"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""CameraRotation"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                }
+            ]
         }
     ],
     ""controlSchemes"": []
@@ -177,11 +205,15 @@ public partial class @InputControls: IInputActionCollection2, IDisposable
         m_Player = asset.FindActionMap("Player", throwIfNotFound: true);
         m_Player_Move = m_Player.FindAction("Move", throwIfNotFound: true);
         m_Player_IsRunning = m_Player.FindAction("IsRunning", throwIfNotFound: true);
+        // Camera
+        m_Camera = asset.FindActionMap("Camera", throwIfNotFound: true);
+        m_Camera_CameraRotation = m_Camera.FindAction("CameraRotation", throwIfNotFound: true);
     }
 
     ~@InputControls()
     {
         UnityEngine.Debug.Assert(!m_Player.enabled, "This will cause a leak and performance issues, InputControls.Player.Disable() has not been called.");
+        UnityEngine.Debug.Assert(!m_Camera.enabled, "This will cause a leak and performance issues, InputControls.Camera.Disable() has not been called.");
     }
 
     public void Dispose()
@@ -293,9 +325,59 @@ public partial class @InputControls: IInputActionCollection2, IDisposable
         }
     }
     public PlayerActions @Player => new PlayerActions(this);
+
+    // Camera
+    private readonly InputActionMap m_Camera;
+    private List<ICameraActions> m_CameraActionsCallbackInterfaces = new List<ICameraActions>();
+    private readonly InputAction m_Camera_CameraRotation;
+    public struct CameraActions
+    {
+        private @InputControls m_Wrapper;
+        public CameraActions(@InputControls wrapper) { m_Wrapper = wrapper; }
+        public InputAction @CameraRotation => m_Wrapper.m_Camera_CameraRotation;
+        public InputActionMap Get() { return m_Wrapper.m_Camera; }
+        public void Enable() { Get().Enable(); }
+        public void Disable() { Get().Disable(); }
+        public bool enabled => Get().enabled;
+        public static implicit operator InputActionMap(CameraActions set) { return set.Get(); }
+        public void AddCallbacks(ICameraActions instance)
+        {
+            if (instance == null || m_Wrapper.m_CameraActionsCallbackInterfaces.Contains(instance)) return;
+            m_Wrapper.m_CameraActionsCallbackInterfaces.Add(instance);
+            @CameraRotation.started += instance.OnCameraRotation;
+            @CameraRotation.performed += instance.OnCameraRotation;
+            @CameraRotation.canceled += instance.OnCameraRotation;
+        }
+
+        private void UnregisterCallbacks(ICameraActions instance)
+        {
+            @CameraRotation.started -= instance.OnCameraRotation;
+            @CameraRotation.performed -= instance.OnCameraRotation;
+            @CameraRotation.canceled -= instance.OnCameraRotation;
+        }
+
+        public void RemoveCallbacks(ICameraActions instance)
+        {
+            if (m_Wrapper.m_CameraActionsCallbackInterfaces.Remove(instance))
+                UnregisterCallbacks(instance);
+        }
+
+        public void SetCallbacks(ICameraActions instance)
+        {
+            foreach (var item in m_Wrapper.m_CameraActionsCallbackInterfaces)
+                UnregisterCallbacks(item);
+            m_Wrapper.m_CameraActionsCallbackInterfaces.Clear();
+            AddCallbacks(instance);
+        }
+    }
+    public CameraActions @Camera => new CameraActions(this);
     public interface IPlayerActions
     {
         void OnMove(InputAction.CallbackContext context);
         void OnIsRunning(InputAction.CallbackContext context);
+    }
+    public interface ICameraActions
+    {
+        void OnCameraRotation(InputAction.CallbackContext context);
     }
 }

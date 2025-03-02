@@ -23,13 +23,13 @@ namespace ServiceLocator.Main
         private void CreateServices()
         {
             inputService = new InputService();
-            cameraService = new CameraService(gameService.mainCamera, gameService.cameraOffset);
+            cameraService = new CameraService(gameService.mainCamera, gameService.cameraConfig);
             playerService = new PlayerService(gameService.playerConfig);
         }
         private void InjectDependencies()
         {
             inputService.Init();
-            cameraService.Init(playerService);
+            cameraService.Init(inputService, playerService);
             playerService.Init(inputService);
         }
 

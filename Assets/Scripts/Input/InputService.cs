@@ -14,6 +14,7 @@ namespace ServiceLocator.Controls
         {
             FetchPlayerMovement();
             IsPlayerRunning = inputControls.Player.IsRunning.IsPressed();
+            CameraRotation = inputControls.Camera.CameraRotation.ReadValue<Vector2>();
         }
 
         private void FetchPlayerMovement()
@@ -29,5 +30,6 @@ namespace ServiceLocator.Controls
 
         public Vector2 GetPlayerMovement { get; private set; }
         public bool IsPlayerRunning { get; private set; }
+        public Vector2 CameraRotation { get; private set; }
     }
 }
