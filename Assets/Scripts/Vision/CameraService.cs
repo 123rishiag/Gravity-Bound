@@ -1,3 +1,4 @@
+using ServiceLocator.Controls;
 using ServiceLocator.Player;
 using UnityEngine;
 
@@ -7,23 +8,59 @@ namespace ServiceLocator.Vision
     {
         // Private Variables
         private Camera mainCamera;
-        private Vector3 positionOffset;
+        private CameraConfig cameraConfig;
+
+        private float pitch = 0f;  // Pitch is vertical angle
+        private float yaw = 0f;  // Yaw is horizontal angle
 
         // Private Services
+        private InputService inputService;
         private PlayerService playerService;
 
-        public CameraService(Camera _camera, Vector3 _positionOffset)
+        public CameraService(Camera _mainCamera, CameraConfig _cameraConfig)
         {
-            mainCamera = _camera;
-            positionOffset = _positionOffset;
+            // Setting Variables
+            mainCamera = _mainCamera;
+            cameraConfig = _cameraConfig;
+
+            pitch = cameraConfig.initialVerticalAngle;
+            yaw = cameraConfig.initialHorizontalAngle;
         }
-        public void Init(PlayerService _playerService) => playerService = _playerService;
+        public void Init(InputService _inputService, PlayerService _playerService)
+        {
+            // Setting Services
+            inputService = _inputService;
+            playerService = _playerService;
+        }
         public void Destroy() { }
-        public void Update() => FollowTransform();
+        public void Update()
+        {
+            RotateMouse();
+        }
 
-        // Setters
-        private void FollowTransform() =>
-            mainCamera.transform.position = playerService.GetPlayerController().GetTransform().position + positionOffset;
+        void RotateMouse()
+        {
+            float mouseX = inputService.CameraRotation.x * cameraConfig.cameraSensitivity * Time.deltaTime;
+            float mouseY = inputService.CameraRotation.y * cameraConfig.cameraSensitivity * Time.deltaTime;
 
+            // Setting horizontal and vertical movement based on mouse movement(delta)
+            yaw += mouseX;
+            pitch -= mouseY;
+            pitch = Mathf.Clamp(pitch, -cameraConfig.verticalMovementRestricton.x, cameraConfig.verticalMovementRestricton.y);
+
+            // Fetching player position based on height offset
+            Vector3 playerPosition =
+                playerService.GetPlayerController().GetTransform().position + Vector3.up * cameraConfig.heightOffsetFromPlayer;
+
+            // Calculating rotation from yaw and pitch
+            Quaternion rotation = Quaternion.Euler(pitch, yaw, 0);
+
+            // To keep constant distance behind player
+            Vector3 cameraOffset = rotation * new Vector3(0, 0, -cameraConfig.distanceFromPlayer);
+
+            // Setting camera Position
+            mainCamera.transform.position = playerPosition + cameraOffset;
+            mainCamera.transform.LookAt(playerPosition);
+        }
     }
 }

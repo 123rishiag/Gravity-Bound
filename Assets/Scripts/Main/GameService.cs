@@ -1,4 +1,5 @@
 using ServiceLocator.Player;
+using ServiceLocator.Vision;
 using UnityEngine;
 
 namespace ServiceLocator.Main
@@ -7,7 +8,7 @@ namespace ServiceLocator.Main
     {
         [Header("Camera Variables")]
         [SerializeField] public Camera mainCamera;
-        [SerializeField] public Vector3 cameraOffset = new Vector3(0f, 1f, -2f);
+        [SerializeField] public CameraConfig cameraConfig;
 
         [Header("Game Components")]
         [SerializeField] public PlayerConfig playerConfig;
